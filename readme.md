@@ -6,7 +6,7 @@ pdf에 있는 PUA 기반 옛한글을 유니코드로 변환합니다.
 
 라이브러리 설치
 ```bash
-pip install pymupdf
+pip install pymupdf tqdm
 ```
 
 실행
