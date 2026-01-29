@@ -1,5 +1,6 @@
 import fitz  # PyMuPDF
 import argparse
+from tqdm import tqdm
 from puatable import PUA_CONV_TAB
 
 def pua_to_uni(s: str) -> str:
@@ -12,9 +13,9 @@ def make_text_unselectable(input_path, output_path):
     src_doc = fitz.open(input_path)
     out_doc = fitz.open()
 
-    print(f"Processing {len(src_doc)} pages...")
+    print(f"Preprocessing {len(src_doc)} pages...")
 
-    for page in src_doc:
+    for page in tqdm(src_doc):
         # 1. Get SVG image of the page
         # text_as_path=True forces text to be converted to geometric curves
         svg_text = page.get_svg_image(text_as_path=True)
@@ -43,10 +44,11 @@ def make_text_unselectable(input_path, output_path):
 def fix_with_html_engine(input_pdf, unselectable_pdf, output_pdf, do_display):
     doc = fitz.open(input_pdf)
     unselectable_doc = fitz.open(unselectable_pdf)
-    # Path must be absolute for the HTML engine
     font_path = "./NotoSansKR-Regular.ttf"
 
-    for page, upage in zip(doc, unselectable_doc):
+    print(f"Converting {len(doc)} pages...")
+
+    for page, upage in tqdm(zip(doc, unselectable_doc), total=len(doc)):
         dict_data = page.get_text("dict")
 
         for block in dict_data.get("blocks", []):
@@ -83,6 +85,8 @@ def fix_with_html_engine(input_pdf, unselectable_pdf, output_pdf, do_display):
 
                     # 3. Insert the HTML into the rect
                     upage.insert_htmlbox(rect, f'{html_header}<p>{html_content}</p>')
+
+    print("Saving..")
 
     unselectable_doc.save(output_pdf, garbage=4, deflate=True)
     unselectable_doc.close()
